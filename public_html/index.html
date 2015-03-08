@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html lang="en">
+    <head>
+        <title>Javascript island generator</title>
+        <meta charset="UTF-8">
+        <style>
+            body
+            {
+                background-color: white;
+                color: black;
+                text-align: center;
+                margin: 0;
+            }
+            #container {
+                max-width: 900px; 
+                margin: 0 auto;
+                border-left: 2px solid grey;
+                border-right: 2px solid grey;
+            }
+            #mainscreen {
+                position: relative;
+                top: 50%;
+                transform: translateY(-50%);
+            }
+            #mainScreenWrapper {
+                width: 532px; 
+                height: 533px; 
+                overflow: scroll; 
+                margin: 0 auto;
+                border: 2px solid grey;
+            }
+            #left {
+                float: left;
+                width: 440px;
+                text-align: left;
+
+            }
+            #right {
+                float: right;
+                width: 440px;
+                text-align: left;
+            }
+            #stagesList button {
+                text-align: left;
+                padding: 0.3em 0;
+                width: 400px;
+            }
+            #easy {
+                width: 100%;
+                display: inline-block;
+                height: 100px;
+                font-size: 60px;
+
+            }
+            #descriptionList {
+                border: 1px solid grey;
+                width: 400px;
+                display: inline-block;
+                min-height: 60px;
+                overflow: auto;
+            }
+            #descriptionList span {
+                display: block;
+            }
+        </style>
+        <script>
+
+            var currentIslandGrid = [];
+            Array.prototype.clone = function () {
+                var arr = this.slice(0);
+                for (var i = 0; i < this.length; i++) {
+                    if (this[i].clone) {
+                        //recursion
+                        arr[i] = this[i].clone();
+                    }
+                }
+                return arr;
+            };
+            function getDistanceFromCenter(number, gridSize) {
+                var positiveDistance = Math.abs(number - gridSize / 2);
+                var negativeDistance = Math.abs(gridSize - 1 - number - gridSize / 2);
+                return Math.max(positiveDistance, negativeDistance);
+            }
+            function render() {
+                var islandsArray = currentIslandGrid;
+                var size = 4;
+                var arraySize = islandsArray.length * size;
+                var c = document.getElementById("mainScreen");
+                c.width = arraySize;
+                c.height = arraySize;
+
+
+                var ctx = c.getContext("2d");
+
+                for (var x = 0; x < islandsArray.length; x++) {
+                    for (var y = 0; y < islandsArray.length; y++) {
+                        var type = "rgb(0,0,0)";
+                        if (islandsArray[y][x] === 0) {
+                            type = "rgb(0,255,255)"; // water
+                        } else if (islandsArray[y][x] === 1) {
+                            type = "rgb(0,255,0)"; // land
+                        } else if (islandsArray[y][x] === 2) {
+                            type = "rgb(255,255,0)"; // sand
+                        } else if (islandsArray[y][x] === 3) {
+                            type = "rgb(0,128,0)"; // forest
+                        } else if (islandsArray[y][x] === 4) {
+                            type = "rgb(0,192,0)"; // small forest
+                        } else if (islandsArray[y][x] === 5) {
+                            type = "rgb(128,128,128)"; // stone
+                        }
+                        //ctx.putImageData(type, x * size, y * size);
+                        ctx.fillStyle = type;
+                        ctx.fillRect(x * size, y * size, size, size);
+                    }
+                }
+            }
+            function printIsland(clas, description) {
+                var select = document.getElementById("descriptionList");
+                if (clas === "s1") {
+                    select.innerHTML = "";
+                }
+                var option = document.createElement("span");
+
+                option.innerHTML = select.childNodes.length + 1 + ": " + description;
+                select.appendChild(option);
+
+            }
+
+
+
+            function stage1(islands) {
+                ////////////////////////////////////
+                // INITIAL STAGE: Basic island
+                ////////////////////////////////////
+                islands = [];
+                var length = 16; // user defined length
+
+                for (var x = 0; x < length; x++) {
+                    var yarray = [];
+                    islands.push(yarray);
+                    for (var y = 0; y < length; y++) {
+                        var islandNumber =
+                                y > 5 && y < 10 &&
+                                x > 5 && x < 10 ? 1 : 0;
+                        yarray.push(islandNumber);
+                    }
+                }
+
+                printIsland("s1", "Creating basic island");
+                return islands;
+            }
+
+
+
+
+            function stage2(islands) {
+                var length = islands.length;
+                ////////////////////////////////////
+                // SECOND STAGE: increasing island size
+                ////////////////////////////////////
+                for (var counter = 0; counter < 3; counter++) {
+                    for (var distanceFromCenter = 3; distanceFromCenter < length / 2; distanceFromCenter++) {
+                        var stage = islands.clone();
+                        for (var x = 0; x < length; x++) {
+                            for (var y = 0; y < length; y++) {
+                                var yDistance = getDistanceFromCenter(y, length);
+                                var xDistance = getDistanceFromCenter(x, length);
+                                if ((xDistance === distanceFromCenter && yDistance <= distanceFromCenter)
+                                        || (yDistance === distanceFromCenter && xDistance <= distanceFromCenter)) {
+                                    var surroundings = 0;
+                                    for (var i = -1; i < 2; i++)
+                                        for (var j = -1; j < 2; j++)
+                                            //if(i === 0 || j === 0)
+                                            if (islands[y + i][x + j] !== 0)
+                                                surroundings++;
+                                    var globalDistanceFromCenter = Math.sqrt(yDistance * yDistance + xDistance * xDistance);
+                                    globalDistanceFromCenter /= 30;
+                                    surroundings /= 2.6;
+                                    surroundings -= globalDistanceFromCenter;
+                                    stage[y][x] = Math.random() + Math.random() < surroundings ? 1 : 0;
+                                }
+                            }
+                        }
+                        islands = stage;
+                    }
+                }
+
+                printIsland("s2", "Increasing island size");
+                return islands;
+            }
+
+            function stage3(islands) {
+                ////////////////////////////////////
+                // THIRD STAGE: Increasing land size
+                ////////////////////////////////////
+                var length = islands.length;
+                if (length > 128)
+                    return islands; // Prevent crashing
+
+                var stage = [];
+                var sizeIncrease = 8; // Islands size increase
+                var newSize = sizeIncrease * length;
+                for (var x = 0; x < newSize; x++) {
+                    var yarray = [];
+                    stage.push(yarray);
+                    for (var y = 0; y < newSize; y++) {
+                        yarray.push(0);
+                    }
+                }
+                for (var x = 0; x < length; x++) {
+                    for (var y = 0; y < length; y++) {
+                        var selfNumber = islands[y][x];
+                        for (var i = 0; i < sizeIncrease; i++) {
+                            for (var j = 0; j < sizeIncrease; j++) {
+                                stage[y * sizeIncrease + j][x * sizeIncrease + i] = selfNumber;
+                            }
+                        }
+                    }
+                }
+                islands = stage;
+                length = newSize;
+
+                printIsland("a1", "Increasing grid size");
+                return islands;
+            }
+
+
+            function stage4(islands) {
+                var length = islands.length;
+                ////////////////////////////////////////////
+                // FOURTH STAGE: Random noise
+                // ////////////////////////////////
+                // This skips the 6 outher lines to prevent the land from touching the sides
+
+                var stage = islands.clone();
+                for (var x = 6; x < length - 6; x++) {
+                    for (var y = 6; y < length - 6; y++) {
+                        var water = 0;
+                        var land = 0;
+                        for (var i = -5; i < 6; i++)
+                            for (var j = -5; j < 6; j++)
+                                if (i * i + j * j <= 5 * 5) // in circle of radius 3
+                                    if (islands[y + i][x + j] === 0)
+                                        water++;
+                                    else
+                                        land++;
+                        var randomNumber = Math.random() + Math.random() + Math.random() + Math.random();
+                        randomNumber /= 4; // more change towards the middle of the range
+                        var rand = randomNumber * (land + water);
+                        if (rand > water)
+                            stage[y][x] = 1;
+                        else
+                            stage[y][x] = 0;
+                    }
+                }
+                islands = stage;
+
+                printIsland("a2", "Island based noise overlay");
+                return islands;
+            }
+
+            function stage5(islands) {
+                var length = islands.length;
+                ////////////////////////////////////////////
+                // FIFTH STAGE: Larger blur
+                ////////////////////////////////////////////
+                var changed;
+                var changedTimes = 0;
+                do {
+                    changed = false;
+                    var stage = islands.clone();
+                    for (var x = 6; x < length - 6; x++) {
+                        for (var y = 6; y < length - 6; y++) {
+                            var selfnumber = stage[y][x];
+                            var water = 0;
+                            var land = 0;
+                            for (var i = -5; i < 6; i++)
+                                for (var j = -5; j < 6; j++)
+                                    if (i * i + j * j <= 5 * 5) // in circle of radius 5
+                                        if (islands[y + i][x + j] === 0)
+                                            water++;
+                                        else
+                                            land++;
+                            if (selfnumber === 0 && water < 25) {
+                                stage[y][x] = 1;
+                                changed = true;
+                            } else if (selfnumber === 1 && land < 25) {
+                                stage[y][x] = 0;
+                                changed = true;
+                            }
+
+                        }
+                    }
+                    islands = stage;
+                    changedTimes++;
+                } while (changed && changedTimes < 100);
+                printIsland("a3", "Larger blur");
+                return islands;
+            }
+
+
+            function stage6(islands) {
+                var length = islands.length;
+                ////////////////////////////////////
+                // SIXTH STAGE: removing seperate areas
+                ////////////////////////////////////
+
+                var changed;
+                var changedTimes = 0;
+                do {
+                    changed = false;
+                    var stage = islands.clone();
+                    for (var x = 1; x < length - 1; x++) {
+                        for (var y = 1; y < length - 1; y++) {
+
+                            var water = 0;
+                            var land = 0;
+                            for (var i = -1; i < 2; i++)
+                                for (var j = -1; j < 2; j++)
+                                    if (i === 0 || j === 0)
+                                        if (islands[y + i][x + j] === 0)
+                                            water++;
+                                        else
+                                            land++;
+                            if (islands[y][x] === 0) { // There is water
+                                if (water === 1) { // Without surroundings
+                                    stage[y][x] = 1;
+                                    changed = true;
+                                }
+                            } else { // There is land
+                                if (land === 1) { // Without Surroundings
+                                    stage[y][x] = 0;
+                                    changed = true;
+                                }
+                            }
+                        }
+                    }
+                    islands = stage;
+                    changedTimes++;
+                } while (changed && changedTimes < 100);
+
+
+                printIsland("a4", "Removing seperate islands");
+                return islands;
+            }
+
+
+            function stage7(islands) {
+                var length = islands.length;
+                ////////////////////////////////////////////
+                // SEVENTH STAGE: Adding sand
+                ////////////////////////////////////////////
+
+                var stage = islands.clone();
+                for (var x = 2; x < length - 2; x++) {
+                    for (var y = 2; y < length - 2; y++) {
+                        var selfnumber = stage[y][x];
+                        var water = 0;
+                        var land = 0;
+                        for (var i = -2; i < 3; i++)
+                            for (var j = -2; j < 3; j++)
+                                if (i * i + j * j <= 2 * 2) // in the circle of radius 2
+                                    if (islands[y + i][x + j] === 0)
+                                        water++;
+                                    else
+                                        land++;
+                        if (water > 0 && selfnumber === 1) {
+                            stage[y][x] = 2;
+                        }
+                    }
+                }
+                islands = stage;
+
+                printIsland("a5", "Adding sand");
+                return islands;
+            }
+
+            function stage8(islands) {
+                var length = islands.length;
+                ////////////////////////////////////////////
+                // EIGHT STAGE: Adding forests
+                ////////////////////////////////////////////
+
+                var stage = islands.clone();
+                var forestStarting = [];
+                for (var x = 2; x < length - 2; x++) {
+                    for (var y = 2; y < length - 2; y++) {
+                        var selfnumber = stage[y][x];
+                        var sand = 0;
+                        var land = 0;
+                        var water = 0;
+                        for (var i = -2; i < 3; i++)
+                            for (var j = -2; j < 3; j++)
+                                if (i * i + j * j <= 2 * 2) // in the circle of radius 2
+                                    if (islands[y + i][x + j] === 0)
+                                        water++;
+                                    else if (islands[y + i][x + j] === 1)
+                                        land++;
+                                    else
+                                        sand++;
+                        if (water === 0 && sand === 0 && selfnumber === 1) {
+                            forestStarting.push([parseInt(x + ""), parseInt(y + "")]);
+                        }
+                    }
+                }
+                for (var counter = 0; counter < forestStarting.length / 8; counter++) {
+                    var rand = forestStarting[Math.floor(Math.random() * forestStarting.length)];
+                    stage[rand[1]][rand[0]] = 3;
+                }
+
+                islands = stage;
+
+                printIsland("a6", "Adding forests");
+                return islands;
+            }
+
+
+            function stage9(islands) {
+                var length = islands.length;
+                ////////////////////////////////////////////
+                // NINETH STAGE: Growing forests
+                ////////////////////////////////////////////
+                for (var counter = 0; counter < 6; counter++) {
+                    var stage = islands.clone();
+                    for (var x = 2; x < length - 2; x++) {
+                        for (var y = 2; y < length - 2; y++) {
+                            var selfnumber = stage[y][x];
+                            var forests = 0;
+                            var other = 0;
+                            var sand = 0;
+                            for (var i = -2; i < 3; i++)
+                                for (var j = -2; j < 3; j++)
+                                    if (i * i + j * j <= 2 * 2) // in the circle of radius 2
+                                        if (islands[y + i][x + j] === 3)
+                                            forests++;
+                                        else if (islands[y + i][x + j] === 2)
+                                            sand++;
+                                        else
+                                            other++;
+                            if (forests > 3 && forests > sand * 3 && selfnumber === 1) {
+                                stage[y][x] = 3;
+                            }
+                        }
+                    }
+                    islands = stage;
+                }
+                printIsland("a7", "Growing forests");
+                return islands;
+            }
+
+            function stage10(islands) {
+                var length = islands.length;
+                ////////////////////////////////////////////
+                // TENTH STAGE: Destroying small forests
+                ////////////////////////////////////////////
+                var stage = islands.clone();
+                for (var x = 2; x < length - 2; x++) {
+                    for (var y = 2; y < length - 2; y++) {
+                        var selfnumber = islands[y][x];
+                        var forests = 0;
+                        var other = 0;
+                        for (var i = -2; i < 3; i++)
+                            for (var j = -2; j < 3; j++)
+                                if (i * i + j * j <= 2 * 2) // in the circle of radius 2
+                                    if (islands[y + i][x + j] === 3)
+                                        forests++;
+                                    else
+                                        other++;
+                        if (forests < 7 && selfnumber === 3) {
+                            stage[y][x] = 1;
+                        }
+                    }
+                }
+                islands = stage;
+                printIsland("a8", "Destroying small forests");
+                return islands;
+            }
+
+            function stage11(islands) {
+                var length = islands.length;
+                ////////////////////////////////////////////
+                // ELEVENTH STAGE: Planting more small forests
+                ////////////////////////////////////////////
+                var stage = islands.clone();
+                for (var x = 6; x < length - 6; x++) {
+                    for (var y = 6; y < length - 6; y++) {
+                        var selfnumber = islands[y][x];
+                        var other = 0;
+                        var sand = 0;
+                        for (var i = -6; i < 7; i++)
+                            for (var j = -6; j < 7; j++)
+                                if (i * i + j * j <= 6 * 6) // in the circle of radius 6
+                                    if (islands[y + i][x + j] === 2)
+                                        sand++;
+                                    else
+                                        other++;
+                        if (sand === 0 && selfnumber === 1) {
+                            stage[y][x] = 4;
+                        }
+                    }
+                }
+                islands = stage;
+                printIsland("a10", "Adding small forests to island center");
+                return islands;
+            }
+            function doStage(stage) {
+                currentIslandGrid = stage(currentIslandGrid);
+                render();
+            }
+        </script>
+    </head>
+    <body style="background-color: white; color: black;">
+        <div id="container">
+            <h1 style="padding-top: 1em; margin: 0;">Island Generator</h1>
+            <div id="explanation">
+                <h2>Help</h2>
+                <p>
+                    This is a javascript island generator.
+                    You can generate a quick island using the "1-click island" button
+                    This program works by running the bottom left stages one after 
+                    the other, this causes the island to be made.
+                </p>
+                <button onclick="document.getElementById('explanation').hidden = true">Close help</button>
+                <hr>
+            </div>
+            <h2>Output</h2>
+            <div id="mainScreenWrapper">
+                <canvas id="mainScreen" width="128" height="128"></canvas>
+            </div>
+            <p>^ Output of the script will show above this ^</p>
+            <hr>
+            <h2>Controls</h2>
+            <button id="easy" onclick="currentIslandGrid = stage11(stage10(stage9(stage8(stage7(stage6(stage5(stage4(stage3(stage2(stage1()))))))))));
+                    render()">1-click island</button>
+            <div id="left">
+                <h3>Single Stages:</h3>
+                <p id="stagesList">
+                    <button onclick="doStage(stage1)">1: Generate basic island</button>
+                    <br/><button onclick="doStage(stage2)">2: Increase island size</button>
+                    <br/><button onclick="doStage(stage3)">4: Increase island grid size</button>
+                    <br/><button onclick="doStage(stage4)">5: Island based noise overlay</button>
+                    <br/><button onclick="doStage(stage5)">6: Larger blur</button>
+                    <br/><button onclick="doStage(stage6)">7: Remove seperate islands</button>
+                    <br/><button onclick="doStage(stage7)">8: Add sand</button>
+                    <br/><button onclick="doStage(stage8)">9: Add forests</button>
+                    <br/><button onclick="doStage(stage9)">10: Expand forests</button>
+                    <br/><button onclick="doStage(stage10)">11: Remove small forests</button>
+                    <br/><button onclick="doStage(stage11)">12: Add center small forests</button>
+                </p>
+            </div>
+            <div id="right">
+                <h3>Applied operations:</h3>
+                <p id="descriptionList"></p>
+            </div>
+            <div style="clear:both;"></div>
+        </div>
+
+
+
+
+
+        <div style="position: absolute; top: 0; left: 0; max-width: 240px;
+             max-height: 100px; min-width: 10px; min-height: 10px; 
+             background-color: lightgreen; border: 3px solid black; 
+             opacity: 0.95; border-bottom-right-radius: 10px;" id="ProjectHubBackButton">
+            <button style="position: absolute; bottom: 0; right: 0; width: 30px; height: 30px; border-bottom-right-radius: 10px;" onclick="var c = document.getElementById('ProjectHubBackButtonContent');
+                    c.hidden = !c.hidden">X</button>
+            <a href="//ferrybig.no-ip.info:8888/projects/ProjectHub/" id="ProjectHubBackButtonContent">
+                <img style="float:left;" width=100 height=100 src="//ferrybig.no-ip.info:8888/projects/ProjectHub/logo/logo.svg" alt="">
+                This site is part of Fernando&nbsp;Projects<br>
+                Back to projects hub
+            </a>
+        </div>
+        <script>
+            var _orgWindowLoad = window.onload;
+            window.onload = function () {
+                document.getElementById('ProjectHubBackButton').hidden = false;
+                if (_orgWindowLoad)
+                    _orgWindowLoad();
+            };
+        </script>
+    </body>
+</html>
