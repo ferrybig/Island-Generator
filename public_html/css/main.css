@@ -1,5 +1,4 @@
-body
-{
+body {
     background-color: white;
     color: black;
     text-align: center;
@@ -27,7 +26,6 @@ body
     float: left;
     width: 440px;
     text-align: left;
-
 }
 #right {
     float: right;
@@ -44,7 +42,6 @@ body
     display: inline-block;
     height: 30px;
     font-size: 10px;
-    
 }
 #descriptionList {
     border: 1px solid grey;
