@@ -47,9 +47,9 @@ function render() {
         }
     }
 }
-function printIsland(clas, description) {
+function printIsland(description, needReset) {
     var select = document.getElementById("descriptionList");
-    if (clas === "s1") {
+    if (needReset === true) {
         select.innerHTML = "";
     }
     var option = document.createElement("span");
@@ -79,7 +79,7 @@ function stage1(islands) {
         }
     }
 
-    printIsland("s1", "Creating basic island");
+    printIsland("Creating basic island", true);
     return islands;
 }
 
@@ -118,7 +118,7 @@ function stage2(islands) {
         }
     }
 
-    printIsland("s2", "Increasing island size");
+    printIsland("Increasing island size");
     return islands;
 }
 
@@ -153,7 +153,7 @@ function stage3(islands) {
     islands = stage;
     length = newSize;
 
-    printIsland("a1", "Increasing grid size");
+    printIsland("Increasing grid size");
     return islands;
 }
 
@@ -188,7 +188,7 @@ function stage4(islands) {
     }
     islands = stage;
 
-    printIsland("a2", "Island based noise overlay");
+    printIsland("Island based noise overlay");
     return islands;
 }
 
@@ -227,7 +227,7 @@ function stage5(islands) {
         islands = stage;
         changedTimes++;
     } while (changed && changedTimes < 100);
-    printIsland("a3", "Larger blur");
+    printIsland("Larger blur");
     return islands;
 }
 
@@ -273,7 +273,7 @@ function stage6(islands) {
     } while (changed && changedTimes < 100);
 
 
-    printIsland("a4", "Removing seperate islands");
+    printIsland("Removing seperate islands");
     return islands;
 }
 
@@ -304,7 +304,7 @@ function stage7(islands) {
     }
     islands = stage;
 
-    printIsland("a5", "Adding sand");
+    printIsland("Adding sand");
     return islands;
 }
 
@@ -343,7 +343,7 @@ function stage8(islands) {
 
     islands = stage;
 
-    printIsland("a6", "Adding forests");
+    printIsland("Adding forests");
     return islands;
 }
 
@@ -377,7 +377,7 @@ function stage9(islands) {
         }
         islands = stage;
     }
-    printIsland("a7", "Growing forests");
+    printIsland("Growing forests");
     return islands;
 }
 
@@ -405,7 +405,7 @@ function stage10(islands) {
         }
     }
     islands = stage;
-    printIsland("a8", "Destroying small forests");
+    printIsland("Destroying small forests");
     return islands;
 }
 
@@ -433,7 +433,7 @@ function stage11(islands) {
         }
     }
     islands = stage;
-    printIsland("a10", "Adding small forests to island center");
+    printIsland("Adding small forests to island center");
     return islands;
 }
 function doStage(stage) {
