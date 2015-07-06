@@ -29,7 +29,7 @@ function render() {
         for (var y = 0; y < islandsArray.length; y++) {
             var type = "rgb(0,0,0)";
             if (islandsArray[y][x] === 0) {
-                type = "rgb(0,255,255)"; // water
+                type = "rgb(0,192,192)"; // water
             } else if (islandsArray[y][x] === 1) {
                 type = "rgb(0,255,0)"; // land
             } else if (islandsArray[y][x] === 2) {
@@ -40,6 +40,8 @@ function render() {
                 type = "rgb(0,192,0)"; // small forest
             } else if (islandsArray[y][x] === 5) {
                 type = "rgb(128,128,128)"; // stone
+            } else if (islandsArray[y][x] === 6) {
+                type = "rgb(192,255,255)"; // shallow water
             }
             //ctx.putImageData(type, x * size, y * size);
             ctx.fillStyle = type;
@@ -429,6 +431,30 @@ function stage11(islands) {
                             other++;
             if (sand === 0 && selfnumber === 1) {
                 stage[y][x] = 4;
+            }
+        }
+    }
+    islands = stage;
+    printIsland("Adding small forests to island center");
+    return islands;
+}
+function stage12(islands) {
+    var length = islands.length;
+    ////////////////////////////////////////////
+    // TWELFTH STAGE: Adding shallow water
+    ////////////////////////////////////////////
+    var stage = islands.clone();
+    for (var x = 2; x < length - 2; x++) {
+        for (var y = 2; y < length - 2; y++) {
+            var selfnumber = islands[y][x];
+            var water = 0;
+            for (var i = -6; i < 7; i++)
+                for (var j = -6; j < 7; j++)
+                    if (i * i + j * j <= 2 * 2) // in the circle of radius 2
+                        if (islands[y + i][x + j] === 0)
+                            water++;
+            if (water <= 10 && selfnumber === 0) {
+                stage[y][x] = 6;
             }
         }
     }
