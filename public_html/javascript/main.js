@@ -130,7 +130,7 @@ function stage3(islands) {
     ////////////////////////////////////
     var length = islands.length;
     if (length > 128)
-        alert("Island size to large, enlarging cancelled");
+        alert("Island size to large, enlarging cancelled.");
         return islands; // Prevent crashing
 
     var stage = [];
