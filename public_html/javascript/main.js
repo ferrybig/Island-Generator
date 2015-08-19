@@ -129,8 +129,7 @@ function stage3(islands) {
     // THIRD STAGE: Increasing land size
     ////////////////////////////////////
     var length = islands.length;
-    if (length > 128)
-        alert("Island size to large, enlarging cancelled.");
+    if (length > 128 && confirm("Island size to large, enlarging cancelled. Press ok to do it anyway!"))
         return islands; // Prevent crashing
 
     var stage = [];
